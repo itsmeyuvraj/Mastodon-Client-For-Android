@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MastodonWidget" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/mastodon_purple</item>
+        <item name="colorPrimaryVariant">@color/mastodon_purple_dark</item>
+        <item name="colorSecondary">@color/mastodon_teal</item>
+        <item name="colorSecondaryVariant">@color/mastodon_teal</item>
+        <item name="colorError">@android:color/holo_red_light</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="android:colorBackground">@color/white</item>
+        <item name="android:colorForeground">@color/black</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>

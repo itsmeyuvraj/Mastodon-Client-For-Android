@@ -1,0 +1,32 @@
+# Gradle
+.gradle/
+build/
+gradle/
+*.gradle
+
+# Local configuration file
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.DS_Store
+
+# Android Studio
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Firebase
+.google/
+.firebase/
+
+# Signing files
+*.jks
+*.keystore
+
+# Google Services
+google-services.json

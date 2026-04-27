@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:name=".MastodonApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MastodonWidget"
+        android:usesCleartextTraffic="false">
+
+        <!-- Main feed activity -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MastodonWidget">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Post compose activity (opened from widget "New Post" button) -->
+        <activity
+            android:name=".ui.PostActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MastodonWidget" />
+
+        <!-- Auth activity — handles the OAuth redirect URI deep-link -->
+        <activity
+            android:name=".ui.AuthActivity"
+            android:exported="true"
+            android:theme="@style/Theme.MastodonWidget"
+            android:launchMode="singleTask">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="mastodonwidget" android:host="oauth" />
+            </intent-filter>
+        </activity>
+
+        <!-- Home-screen Widget -->
+        <receiver
+            android:name=".widget.MastodonWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.mastodon.widget.ACTION_REFRESH" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/mastodon_widget_info" />
+        </receiver>
+
+        <!-- RemoteViews service that feeds the widget ListView -->
+        <service
+            android:name=".widget.FeedRemoteViewsService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
+        <!-- One-shot sync service (triggered by widget refresh button) -->
+        <service
+            android:name=".service.FeedSyncService"
+            android:exported="false" />
+
+        <!-- Live streaming foreground service (SSE) -->
+        <service
+            android:name=".service.StreamingService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+    </application>
+
+</manifest>

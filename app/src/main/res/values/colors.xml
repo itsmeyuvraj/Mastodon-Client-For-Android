@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="mastodon_purple">#FF6364FF</color>
+    <color name="mastodon_purple_dark">#FF4748CA</color>
+    <color name="mastodon_purple_light">#FFB0B3FF</color>
+    <color name="mastodon_teal">#FF17C2A9</color>
+    <color name="mastodon_bg_light">#FFF3F0FF</color>
+    <color name="mastodon_bg_dark">#FF1B1E2B</color>
+    <color name="mastodon_surface_dark">#FF252836</color>
+    <!-- kept for widget/legacy -->
+    <color name="purple_500">#FF6364FF</color>
+    <color name="purple_700">#FF4748CA</color>
+    <color name="teal_200">#FF17C2A9</color>
+    <color name="teal_700">#FF0E8F7A</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
