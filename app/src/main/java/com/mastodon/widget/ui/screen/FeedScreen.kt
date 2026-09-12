@@ -24,7 +24,8 @@ import com.mastodon.widget.ui.viewmodel.FeedViewModel
 @Composable
 fun FeedScreen(
     viewModel: FeedViewModel = viewModel(),
-    onPostClick: () -> Unit
+    onPostClick: () -> Unit,
+    onAccountClick: (String) -> Unit
 ) {
     val statuses by viewModel.statuses.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -113,7 +114,8 @@ fun FeedScreen(
                         StatusCard(
                             status = status,
                             onFavouriteClick = { viewModel.favourite(status.id) },
-                            onReblogClick = { viewModel.reblog(status.id) }
+                            onReblogClick = { viewModel.reblog(status.id) },
+                            onAccountClick = onAccountClick
                         )
                     }
 

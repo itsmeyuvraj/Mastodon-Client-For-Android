@@ -19,6 +19,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -30,12 +31,17 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    viewModel: ProfileViewModel = viewModel(),
-    onLogout: () -> Unit
+    accountId: String? = null,
+    viewModel: ProfileViewModel = viewModel(key = accountId ?: "current_user"),
+    onNavigateBack: (() -> Unit)? = null,
+    onAccountClick: ((String) -> Unit)? = null,
+    onLogout: () -> Unit = {}
 ) {
     val account by viewModel.account.collectAsState()
     val statuses by viewModel.statuses.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val isCurrentUser by viewModel.isCurrentUser.collectAsState()
+    val error by viewModel.error.collectAsState()
     val updateSuccess by viewModel.updateSuccess.collectAsState()
 
     var showEditDialog by remember { mutableStateOf(false) }
@@ -44,6 +50,10 @@ fun ProfileScreen(
     var editNote by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
+    LaunchedEffect(accountId) {
+        viewModel.loadProfile(accountId)
+    }
 
     LaunchedEffect(updateSuccess) {
         if (updateSuccess) { showEditDialog = false; viewModel.clearUpdateSuccess() }
@@ -131,29 +141,54 @@ fun ProfileScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = { Text("Profile", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    Icon(
-                        Icons.Filled.Person,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 16.dp)
+                title = {
+                    Text(
+                        text = if (onNavigateBack != null) {
+                            account?.displayName?.takeIf { it.isNotBlank() } ?: account?.username ?: "Profile"
+                        } else {
+                            "Profile"
+                        },
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 },
-                actions = {
-                    IconButton(onClick = { showEditDialog = true }) {
+                navigationIcon = {
+                    if (onNavigateBack != null) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(
+                                Icons.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    } else {
                         Icon(
-                            Icons.Filled.Edit,
-                            "Edit profile",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            Icons.Filled.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 16.dp)
                         )
                     }
-                    IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(
-                            Icons.Filled.Logout,
-                            "Sign out",
-                            tint = MaterialTheme.colorScheme.error
-                        )
+                },
+                actions = {
+                    if (isCurrentUser) {
+                        IconButton(onClick = { showEditDialog = true }) {
+                            Icon(
+                                Icons.Filled.Edit,
+                                "Edit profile",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    if (isCurrentUser && onNavigateBack == null) {
+                        IconButton(onClick = { showLogoutDialog = true }) {
+                            Icon(
+                                Icons.Filled.Logout,
+                                "Sign out",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -168,6 +203,24 @@ fun ProfileScreen(
         if (isLoading && account == null) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
+            }
+            return@Scaffold
+        }
+
+        if (error != null && account == null) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        error ?: "Failed to load profile",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Button(onClick = { viewModel.reloadProfile() }) {
+                        Text("Retry")
+                    }
+                }
             }
             return@Scaffold
         }
@@ -298,8 +351,9 @@ fun ProfileScreen(
             items(statuses, key = { it.id }) { status ->
                 StatusCard(
                     status = status,
-                    onFavouriteClick = {},
-                    onReblogClick = {}
+                    onFavouriteClick = { viewModel.favourite(status.id) },
+                    onReblogClick = { viewModel.reblog(status.id) },
+                    onAccountClick = onAccountClick
                 )
             }
         }

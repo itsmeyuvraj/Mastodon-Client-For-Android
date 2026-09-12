@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -38,6 +39,7 @@ fun StatusCard(
     status: Status,
     onFavouriteClick: () -> Unit,
     onReblogClick: () -> Unit,
+    onAccountClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val displayStatus = status.reblog ?: status
@@ -60,7 +62,13 @@ fun StatusCard(
             if (status.reblog != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 10.dp)
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
+                        .clip(MaterialTheme.shapes.extraSmall)
+                        .clickable(
+                            enabled = status.account != null && onAccountClick != null,
+                            onClick = { status.account?.id?.let { onAccountClick?.invoke(it) } }
+                        )
                 ) {
                     Icon(
                         Icons.Filled.Repeat,
@@ -80,42 +88,57 @@ fun StatusCard(
             }
 
             // Author row
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .size(46.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(MastodonPurple.copy(alpha = 0.3f), MaterialTheme.colorScheme.primaryContainer)
-                            )
+                        .weight(1f)
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable(
+                            enabled = account != null && onAccountClick != null,
+                            onClick = { account?.id?.let { onAccountClick?.invoke(it) } }
                         )
                 ) {
-                    AsyncImage(
-                        model = account?.avatar,
-                        contentDescription = "Avatar",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize().clip(CircleShape)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(MastodonPurple.copy(alpha = 0.3f), MaterialTheme.colorScheme.primaryContainer)
+                                )
+                            )
+                    ) {
+                        AsyncImage(
+                            model = account?.avatar,
+                            contentDescription = "Avatar",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize().clip(CircleShape)
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
+                        Text(
+                            text = account?.displayName?.takeIf { it.isNotBlank() } ?: account?.username ?: "Unknown",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "@${account?.acct ?: account?.username ?: "unknown"}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = account?.displayName?.takeIf { it.isNotBlank() } ?: account?.username ?: "Unknown",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "@${account?.acct ?: account?.username ?: "unknown"}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                Spacer(Modifier.width(8.dp))
                 Text(
                     text = formatTime(displayStatus.createdAt),
                     style = MaterialTheme.typography.labelSmall,

@@ -55,12 +55,15 @@ class PreferenceManager(private val context: Context) {
         context.dataStore.edit { it[USER_ID] = id }
     }
 
-    suspend fun setUserInfo(username: String, displayName: String, avatarUrl: String) {
+    suspend fun setUserInfo(username: String, displayName: String, avatarUrl: String, id: String? = null) {
         context.dataStore.edit {
             it[USERNAME] = username
             it[DISPLAY_NAME] = displayName
             it[AVATAR_URL] = avatarUrl
             it[IS_LOGGED_IN] = true
+            if (id != null) {
+                it[USER_ID] = id
+            }
         }
     }
 
@@ -81,5 +84,6 @@ class PreferenceManager(private val context: Context) {
     suspend fun getAccessToken(): String? = accessToken.firstOrNull()
     suspend fun getClientId(): String? = clientId.firstOrNull()
     suspend fun getClientSecret(): String? = clientSecret.firstOrNull()
+    suspend fun getUserId(): String? = userId.firstOrNull()
     suspend fun isUserLoggedIn(): Boolean = isLoggedIn.firstOrNull() ?: false
 }

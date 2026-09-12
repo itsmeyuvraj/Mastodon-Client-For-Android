@@ -1,5 +1,6 @@
 package com.mastodon.widget.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,7 +31,10 @@ import com.mastodon.widget.ui.viewmodel.ExploreViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExploreScreen(viewModel: ExploreViewModel = viewModel()) {
+fun ExploreScreen(
+    viewModel: ExploreViewModel = viewModel(),
+    onAccountClick: ((String) -> Unit)? = null
+) {
     var query by remember { mutableStateOf("") }
     val results by viewModel.results.collectAsState()
     val isSearching by viewModel.isSearching.collectAsState()
@@ -159,7 +163,7 @@ fun ExploreScreen(viewModel: ExploreViewModel = viewModel()) {
                     ) {
                         if (r.accounts.isNotEmpty()) {
                             item { SectionHeader("People") }
-                            items(r.accounts) { AccountRow(it) }
+                            items(r.accounts) { AccountRow(it, onClick = { onAccountClick?.invoke(it.id) }) }
                         }
                         if (r.hashtags.isNotEmpty()) {
                             item { SectionHeader("Hashtags") }
@@ -168,7 +172,12 @@ fun ExploreScreen(viewModel: ExploreViewModel = viewModel()) {
                         if (r.statuses.isNotEmpty()) {
                             item { SectionHeader("Posts") }
                             items(r.statuses, key = { it.id }) { status ->
-                                StatusCard(status = status, onFavouriteClick = {}, onReblogClick = {})
+                                StatusCard(
+                                    status = status,
+                                    onFavouriteClick = {},
+                                    onReblogClick = {},
+                                    onAccountClick = onAccountClick
+                                )
                             }
                         }
                         if (r.accounts.isEmpty() && r.hashtags.isEmpty() && r.statuses.isEmpty()) {
@@ -212,8 +221,9 @@ private fun SectionHeader(title: String) {
 }
 
 @Composable
-private fun AccountRow(account: Account) {
+private fun AccountRow(account: Account, onClick: (() -> Unit)? = null) {
     ListItem(
+        modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke() },
         headlineContent = {
             Text(
                 account.displayName.takeIf { it.isNotBlank() } ?: account.username,
